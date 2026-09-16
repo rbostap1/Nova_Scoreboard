@@ -53,7 +53,8 @@ function safeDepartment(dept) {
         label: dept.label || fallback.label,
         shortLabel: dept.shortLabel || dept.label || fallback.shortLabel,
         color: dept.color || fallback.color,
-        icon: dept.icon || fallback.icon
+        icon: dept.icon || fallback.icon,
+        order: Number.isFinite(Number(dept.order)) ? Number(dept.order) : Number.MAX_SAFE_INTEGER
     };
 }
 
@@ -66,7 +67,8 @@ function iconForDepartment(icon) {
         dot: "o"
     };
 
-    return map[icon] || "o";
+    const token = map[icon] || `${icon || "o"}`.slice(0, 3);
+    return escapeHtml(token);
 }
 
 function applyColorVariables(configColors) {
@@ -140,7 +142,12 @@ function renderDepartmentSummary() {
         totals[key].count += 1;
     });
 
-    const entries = Object.values(totals).sort((a, b) => b.count - a.count);
+    const entries = Object.values(totals).sort((a, b) => {
+        if (a.dept.order !== b.dept.order) {
+            return a.dept.order - b.dept.order;
+        }
+        return b.count - a.count;
+    });
 
     entries.forEach((entry) => {
         const rgb = hexToRgb(entry.dept.color) || { r: 138, g: 143, b: 152 };
@@ -223,6 +230,9 @@ document.getElementById("nextPage").addEventListener("click", () => {
 
 window.addEventListener("message", (event) => {
     const data = event.data;
+    if (!data || typeof data !== "object") {
+        return;
+    }
 
     if (data.action === "toggle") {
         const sb = document.getElementById("scoreboard");

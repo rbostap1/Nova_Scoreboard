@@ -1,9 +1,32 @@
 local scoreboardOpen = false
 
+local function sendScoreboardConfig()
+    SendNUIMessage({
+        action = "config",
+        serverName = Config.ServerName or "Nova Scoreboard",
+        logoEnabled = Config.EnableLogo ~= false,
+        logo = (Config.EnableLogo ~= false and Config.LogoURL) or "",
+        maxPlayers = Config.MaxPlayers or 32,
+        highlightEnabled = Config.HighlightCurrentPlayer ~= false,
+        highlightColor = Config.HighlightColor or "#6495FF",
+        colors = Config.Colors or {},
+        departments = Config.Departments or {},
+        defaultDepartment = Config.DefaultDepartment or {
+            key = "civ",
+            label = "Civilian",
+            shortLabel = "CIV",
+            color = "#B8A168",
+            icon = "user"
+        }
+    })
+end
+
 RegisterCommand("+showscoreboard", function()
     if not scoreboardOpen then
         scoreboardOpen = true
         SetNuiFocus(false, false)
+
+        sendScoreboardConfig()
 
         SendNUIMessage({
             action = "toggle",
@@ -42,24 +65,7 @@ CreateThread(function()
         "INPUT_FRONTEND_UP"
     )
 
-    SendNUIMessage({
-        action = "config",
-        serverName = Config.ServerName or "Nova Scoreboard",
-        logoEnabled = Config.EnableLogo ~= false,
-        logo = (Config.EnableLogo ~= false and Config.LogoURL) or "",
-        maxPlayers = Config.MaxPlayers or 32,
-        highlightEnabled = Config.HighlightCurrentPlayer ~= false,
-        highlightColor = Config.HighlightColor or "#6495FF",
-        colors = Config.Colors or {},
-        departments = Config.Departments or {},
-        defaultDepartment = Config.DefaultDepartment or {
-            key = "civ",
-            label = "Civilian",
-            shortLabel = "CIV",
-            color = "#B8A168",
-            icon = "user"
-        }
-    })
+    sendScoreboardConfig()
 end)
 
 function updateScoreboard()

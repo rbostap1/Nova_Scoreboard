@@ -31,6 +31,8 @@ Config.CreatorMessage = "^3The script creator/editor ^2NAME HERE ^3has joined th
 Config.DepartmentMode = "discord_roles"
 
 -- Enable role lookup via Badger_Discord_API.
+-- Master switch for all Discord role-based department behavior.
+Config.EnableRoleFeature = true
 Config.EnableBadgerApi = true
 Config.BadgerResource = "Badger_Discord_API"
 -- Set this if your Badger Discord API uses a custom export name for role fetch.
@@ -52,11 +54,17 @@ Config.BadgerActivityResource = "Badger_PoliceEMSActivity"
 Config.EnableDutyCommand = true
 Config.DutyCommandName = "NSduty"
 
--- Department definitions
--- Replace ROLE_ID_* values with your real Discord role IDs.
+-- Department definitions.
+-- Copy a block to add a department. Only key, label, shortLabel, and color
+-- are important; roles and fallbackKeywords can be left empty if unused.
+-- Set enabled = false to temporarily hide a department without deleting it.
+-- Lower order values appear first in the department summary.
+-- icon accepts shield, plus, flame, user, dot, or a custom short token.
 Config.Departments = {
     {
         key = "police",
+        enabled = true,
+        order = 1,
         label = "Law Enforcement",
         shortLabel = "LEO",
         color = "#3A86FF",
@@ -66,6 +74,8 @@ Config.Departments = {
     },
     {
         key = "ems",
+        enabled = true,
+        order = 2,
         label = "Medical",
         shortLabel = "EMS",
         color = "#2EC27E",
@@ -75,6 +85,8 @@ Config.Departments = {
     },
     {
         key = "fire",
+        enabled = true,
+        order = 3,
         label = "Fire",
         shortLabel = "FIRE",
         color = "#F76C5E",
@@ -84,6 +96,8 @@ Config.Departments = {
     },
     {
         key = "civ",
+        enabled = true,
+        order = 4,
         label = "Civilian",
         shortLabel = "CIV",
         color = "#B8A168",

@@ -56,8 +56,10 @@ local function getDeclaredServerExports(resourceName)
 end
 
 local function callExportSafely(exportsRef, fnName, ...)
-    local fn = exportsRef[fnName]
-    if not fn then
+    local lookupOk, fn = pcall(function()
+        return exportsRef[fnName]
+    end)
+    if not lookupOk or type(fn) ~= "function" then
         return false, nil
     end
 
@@ -99,6 +101,10 @@ local function sendPlayerMessage(playerSrc, message)
     })
 end
 
+local function isDepartmentEnabled(department)
+    return type(department) == "table" and department.enabled ~= false
+end
+
 local function getRoleBasedDepartmentChoices(playerSrc)
     local choices = {}
     local roles = tryGetBadgerRoles(playerSrc)
@@ -107,7 +113,7 @@ local function getRoleBasedDepartmentChoices(playerSrc)
     end
 
     for _, dept in ipairs(Config.Departments or {}) do
-        if type(dept.roles) == "table" then
+        if isDepartmentEnabled(dept) and type(dept.roles) == "table" then
             for _, roleId in ipairs(dept.roles) do
                 if hasRole(roles, roleId) then
                     table.insert(choices, {
@@ -147,13 +153,14 @@ local function findDepartmentByKey(rawKey)
     local target = toLower(rawKey)
     local departments = Config.Departments or {}
     for _, dept in ipairs(departments) do
-        if toLower(dept.key) == target then
+        if isDepartmentEnabled(dept) and toLower(dept.key) == target then
             return {
                 key = dept.key,
                 label = dept.label,
                 shortLabel = dept.shortLabel or dept.label,
                 color = dept.color,
-                icon = dept.icon
+                icon = dept.icon,
+                order = dept.order
             }
         end
     end
@@ -204,7 +211,7 @@ local function setPlayerActiveDepartment(playerSrc, rawKey)
 end
 
 tryGetBadgerRoles = function(playerSrc)
-    if Config.EnableBadgerApi == false then
+    if Config.EnableRoleFeature == false or Config.EnableBadgerApi == false then
         return nil
     end
 
@@ -336,7 +343,7 @@ local function resolveDepartmentFromRoles(playerSrc, playerName)
     local roles = tryGetBadgerRoles(playerSrc)
     if roles then
         for _, dept in ipairs(departments) do
-            if type(dept.roles) == "table" and #dept.roles > 0 then
+            if isDepartmentEnabled(dept) and type(dept.roles) == "table" and #dept.roles > 0 then
                 for _, roleId in ipairs(dept.roles) do
                     if hasRole(roles, roleId) then
                         return {
@@ -344,7 +351,8 @@ local function resolveDepartmentFromRoles(playerSrc, playerName)
                             label = dept.label or defaultDept.label,
                             shortLabel = dept.shortLabel or dept.label or defaultDept.shortLabel,
                             color = dept.color or defaultDept.color,
-                            icon = dept.icon or defaultDept.icon
+                            icon = dept.icon or defaultDept.icon,
+                            order = dept.order
                         }
                     end
                 end
@@ -364,7 +372,7 @@ local function resolveDepartmentFromRoles(playerSrc, playerName)
     end
 
     for _, dept in ipairs(departments) do
-        local keywords = dept.fallbackKeywords
+        local keywords = isDepartmentEnabled(dept) and dept.fallbackKeywords
         if type(keywords) == "table" then
             for _, keyword in ipairs(keywords) do
                 local token = toLower(keyword)
@@ -374,7 +382,8 @@ local function resolveDepartmentFromRoles(playerSrc, playerName)
                         label = dept.label or defaultDept.label,
                         shortLabel = dept.shortLabel or dept.label or defaultDept.shortLabel,
                         color = dept.color or defaultDept.color,
-                        icon = dept.icon or defaultDept.icon
+                        icon = dept.icon or defaultDept.icon,
+                        order = dept.order
                     }
                 end
             end

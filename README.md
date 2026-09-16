@@ -65,6 +65,7 @@ Config.CreatorMessage = "^3The script creator/editor ^2NAME HERE ^3has joined th
 ```lua
 Config.DepartmentMode = "discord_roles" -- or "badger_duty"
 
+Config.EnableRoleFeature = true
 Config.EnableBadgerApi = true
 Config.BadgerResource = "Badger_Discord_API"
 Config.BadgerRoleExport = "GetDiscordRoles"
@@ -77,6 +78,10 @@ Config.BadgerActivityResource = "Badger_PoliceEMSActivity"
 Config.EnableDutyCommand = true
 Config.DutyCommandName = "NSduty"
 ```
+
+Set `Config.EnableRoleFeature = false` to disable all Discord role lookups and
+role-based duty selection. Keyword fallback and Badger duty exports can still
+resolve departments when configured.
 
 ## Department Modes
 - `discord_roles`
@@ -100,46 +105,44 @@ Behavior:
 - `off`/`clear` removes active duty status.
 
 ## Department Definitions
-Define your departments and role mappings in `Config.Departments`.
+Define your departments and role mappings in `Config.Departments`. Each block can be customized independently:
+
+- `key`: unique internal name used by duty events and commands.
+- `label`: full name shown in messages and configuration.
+- `shortLabel`: compact name shown on player cards and summary pills.
+- `color`: department color in hex format, such as `#3A86FF`.
+- `icon`: `shield`, `plus`, `flame`, `user`, `dot`, or a custom short token such as `PD`.
+- `roles`: Discord role IDs that grant access to the department.
+- `fallbackKeywords`: optional name/identifier matches when role lookup is unavailable.
+- `enabled`: set to `false` to disable a department without deleting it.
+- `order`: lower numbers appear first in the summary.
+
+Minimal example:
 
 ```lua
 Config.Departments = {
-        {
-                key = "police",
-                label = "Law Enforcement",
-                shortLabel = "LEO",
-                color = "#3A86FF",
-                icon = "shield",
-                roles = { "ROLE_ID_POLICE" },
-                fallbackKeywords = { "lspd", "sasp", "bcso", "police", "sheriff", "state" }
-        },
-        {
-                key = "ems",
-                label = "Medical",
-                shortLabel = "EMS",
-                color = "#2EC27E",
-                icon = "plus",
-                roles = { "ROLE_ID_EMS" },
-                fallbackKeywords = { "ems", "medic", "doctor", "ambulance" }
-        },
-        {
-                key = "fire",
-                label = "Fire",
-                shortLabel = "FIRE",
-                color = "#F76C5E",
-                icon = "flame",
-                roles = { "ROLE_ID_FIRE" },
-                fallbackKeywords = { "fire", "fd", "firefighter" }
-        },
-        {
-                key = "civ",
-                label = "Civilian",
-                shortLabel = "CIV",
-                color = "#B8A168",
-                icon = "user",
-                roles = { "ROLE_ID_CIV" },
-                fallbackKeywords = { "civ", "civilian" }
-        }
+    {
+    key = "police",
+    enabled = true,
+    order = 1,
+    label = "Law Enforcement",
+    shortLabel = "LEO",
+    color = "#3A86FF",
+    icon = "shield",
+    roles = { "ROLE_ID_POLICE" },
+    fallbackKeywords = { "lspd", "police", "sheriff" }
+    },
+    {
+    key = "civ",
+    enabled = true,
+    order = 2,
+    label = "Civilian",
+    shortLabel = "CIV",
+    color = "#B8A168",
+    icon = "user",
+    roles = {},
+    fallbackKeywords = { "civ", "civilian" }
+    }
 }
 
 Config.DefaultDepartment = {
